@@ -2,7 +2,7 @@ k-map
 
 Description
 
-k-mappability is a fast C++11 library implementing an algorithm . The time complexity of the implemented algorithm is O(n) time and space  for  integer alphabets of size σ if m = Ω((log_σ(n)).
+k-mappability is a fast C++11 library implementing an algorithm . The time complexity of the implemented algorithm is O(n) time and space  for  integer alphabets of size σ if m = Ω((log_σ(n)).
 
 Requirements
 
