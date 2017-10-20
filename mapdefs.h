@@ -45,7 +45,8 @@ struct Range {
     int i;
     int j;
 };
-
+#undef min
+#undef max
 
 double gettime( void );
 int decode_switches ( int argc, char * argv [], struct TSwitch * sw );
