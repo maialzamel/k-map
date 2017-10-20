@@ -167,9 +167,9 @@ int main(int argc, char **argv)
       */
             
             
-            if(k==2)
+            if(K==2)
 compute_At_Most_Two_map_simple (seq, seq_id, sw, M, C );
-            if (k==1)
+            if (K==1)
                 
             compute_map_simple ( seq, seq_id, sw, M, C );
            
