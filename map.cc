@@ -1,6 +1,6 @@
 /**
     K-MAP: In the k-mappability problem, we are given a string x of length n and integers m and k, and we are asked to count, for each length-m factor y of x, the number of other factors of length m of x that are at Hamming distance at most k from y.
-    Copyright (C) 2017 Mai Alzamel. 
+    Copyright (C) 2017 Mai Alzamel and Solon P. Pissis. 
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include "mapdefs.h"
-
+#include "math.h"
 int main(int argc, char **argv)
 {
 
@@ -159,28 +159,40 @@ int main(int argc, char **argv)
 			seq[ seq_len ] = '\0';
 
 			C = ( double   *  ) calloc ( ( seq_len ) , sizeof(  double ) );
-            /*The below functions calls are for compraing the results with the naive algorthims for k=1 or k=2
-		        compute_naive_map ( seq, seq_id, sw, C,M,K );
-                    compute_naive_at_most_k_map(seq, seq_id, sw, C,M,K);
-             
-            compute_At_Most_One_map_simple (seq, seq_id, sw, M, C );
-      */
+
+    
             
-            
-            if(K==2)
-compute_At_Most_Two_map_simple (seq, seq_id, sw, M, C );
-            if (K==1)
-                
-            compute_map_simple ( seq, seq_id, sw, M, C );
+if(K>=1){
+                if (M >= (K+2))
+                    /**********   The below functions calls are for compraing the results with the naive algorthims for k=1 or k=2****/
+                    // compute_naive_map ( seq, seq_id, sw, C,M,K );
+                    //compute_At_Most_One_map_simple (seq, seq_id, sw, M, C );
+      //compute_naive_at_most_k_map(seq, seq_id, sw, C,M,K);
+                    //compute_At_Most_Two_map_simple (seq, seq_id, sw, M, C );
+ compute_At_Most_K_map_simple ( seq,seq_id,  sw, M ,    C , K);
+
+
+                else{
+                    
+                    std::cout << ( " Error: m value should be => K+2" );
+                    return ( 1 );
+                }
+            }
+
            
-			double pos = 0;
+		     	double pos = 0;
 		       	for ( INT i = 0; i < seq_len; i++ )
-				if ( C[i] == 0 ) pos++;	
+				if ( round(C[i]) <= K ) pos++;
+         
 			pos = (pos / seq_len)*100;
-			fprintf( stderr, " Sequence %s of length %ld\n",  seq_id, seq_len );
+          
+            fprintf( stderr, " Sequence %s of length %ld\n",  seq_id, seq_len );
 			fprintf( stderr, " %.2lf%% positions are (%d,%d)-mappable.\n",  pos, sw . m, sw . k );
 		}
-		
+        double temp;
+        for(INT i=0;i <seq_len;i++)
+            temp+=C[i];
+        std::cout<<"total" <<temp<<"       ";
 		free ( C );
         	C = NULL;
 		free ( seq );
