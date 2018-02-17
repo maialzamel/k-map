@@ -1,7 +1,7 @@
- /**
- K-MAP:  In the k-mappability problem, we are given a string x of length n and integers m and k, and we are asked to count, for each length-m factor y of x, the number of other factors of length m of x that are at Hamming distance at most k from y. 
-  
-     Copyright (C) 2017 Mai Alzamel 
+
+/**
+    K-MAP: In the k-mappability problem, we are given a string x of length n and integers m and k, and we are asked to count, for each length-m factor y of x, the number of other factors of length m of x that are at Hamming distance at most k from y.
+    Copyright (C) 2017 Mai Alzamel and Solon P. Pissis. 
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -24,14 +23,14 @@
 #include <getopt.h>
 #include <assert.h>
 #include <sys/time.h>
-
+#include <vector>
 #include "mapdefs.h"
 
 
 #include <divsufsort64.h>                                         // include header for suffix sort
 
 #include <sdsl/rmq_support.hpp>
-#include <sdsl/bit_vectors.hpp>					                  // include header for bit vectors
+#include <sdsl/bit_vectors.hpp>                                      // include header for bit vectors
 
 using namespace sdsl;
 using namespace std;
@@ -201,6 +200,11 @@ unsigned int compute_map ( unsigned char * seq,unsigned char * seq_id, struct TS
     	}
     
     	rmq_succinct_sct<> rmq_prime(&v_prime);
+    
+    
+    
+    
+    
     
 	/*1-MAPP ALGORTHIM */
     	INT index=0,j=0,i=0, alpha=0 , beta=0;
@@ -625,7 +629,7 @@ unsigned int compute_At_Most_One_map_simple ( unsigned char * seq,unsigned char 
     
     INT l,r,l_prime,r_prime ,r_1,r_2,l_1,l_2,u_1,u_2,L_1,L_2;
 
-    
+    int h=0;
  
     
     /* Compute the suffix array and LCP array for the seq and inverse seq */
@@ -690,7 +694,7 @@ unsigned int compute_At_Most_One_map_simple ( unsigned char * seq,unsigned char 
     /*0-Mapp Algorthim*/
     
     
-    compute_ZeroMapp (n,  m , SA,LCP, invSA, C );
+ compute_ZeroMapp (n,  m , SA,LCP, invSA, C );
 
     
     /*1-MAPP ALGORTHIM */
@@ -716,7 +720,8 @@ unsigned int compute_At_Most_One_map_simple ( unsigned char * seq,unsigned char 
                     for (INT j=alpha-1; j<= beta;j++)
                     {
                         if (i!=j)
-                        {                                                    // to avoid comparing the same pair
+                        {
+                        // cout <<"i: "<<i <<" j: "<<j<<endl;// to avoid comparing the same pair
                             //**finding poistions r_1 and r_2**/
                             l = min ( i ,  j );
                             r = max ( i ,  j );		//LCP(l+1,r)
@@ -762,22 +767,10 @@ unsigned int compute_At_Most_One_map_simple ( unsigned char * seq,unsigned char 
                             
                             
                             l_1 =  SA[i] - lce ;   //LCE to the left
-                            
-                      
-                            
-                           
-                            
-                            
-                            
+
                             if(l_1>0 && (abs(SA[i]-l_1-SA[j]))>0)  // to check there is enough pos berore reaching 0 to serach for L_2
                             {
-                              
-                          
-                             
                                INT lce = 0;
-                                
-                        
-                                
                                 lSA= l_1-1; // to start from pos l_1-1 before i immeditly
                                 rSA =SA[j]- abs(SA[i]-l_1)-1; // to start from the pos j-l_1-1
                            
@@ -791,47 +784,62 @@ unsigned int compute_At_Most_One_map_simple ( unsigned char * seq,unsigned char 
                             else                                                //check if it is not the last postion in the string
                                 l_2=l_1-1;
                             
-                            
-                            
-                   
-                            
-                            
-                            
-                            
-                            
-                            
+
                             INT p=0;
                             p=max(p,l_2+1);
+                
                             for (;p<=l_1;p++)
                             {
+                           
                                 if (p+m-1>=SA[i]+L-1 && p+m-1< r_1 && p+m-1<n && p+SA[j]-SA[i]+m-1<n && p+SA[j]-SA[i]>=0 )
                                 { // poistions between l_2 and l_1 and p+m-1 < r_1
+                                   
+                                 /// cout << "p  S[I] "<<p<<endl;
+                                   // cout << "mismatch "<< l_1<<endl;
+                                    //cout << "blocks "<< B_i<<endl;
                                     B_i=Counting_Blocks( p, L, l_1,  m);   // count the number of blocks
                                     B_j=Counting_Blocks( p+SA[j]-SA[i], L, l_1+SA[j]-SA[i],  m);   // count the number of blocks
+                                        //  cout <<"blocks "<<  B_i+      B_j<<endl;
                                     if ((B_i+B_j)!=0 )
                                     {
+                                       
                                         C[p]+=1.0/(B_i+B_j);
                                         C[p+SA[j]-SA[i]]+=1.0/(B_i+B_j);
+                                        
+                              
                                     }
+                       
                                 }
                             }
-                            
+ 
                             //end poistions p
                             B_j=0;
                             B_i=0;
                             INT q=0;
+
                             q=max(q,l_1+1);
                             r_2=min(r_2,n);
+
                             for (;q<=SA[i];q++)
                             {
+
                                 if (q+m-1>=r_1 && q+m-1 <r_2 && q+m-1<n && q+SA[j]-SA[i]+m-1<n && q+SA[j]-SA[i]>=0 )
                                 {
+                              
+                            
+                                // cout << "q  S[I] "<<q<<endl;
+                                  //  cout << "mismatch "<< r_1<<endl;
+                   
                                     B_i=Counting_Blocks( q, L, r_1,  m);
                                     B_j=Counting_Blocks( q+SA[j]-SA[i], L, r_1+SA[j]-SA[i],  m);
+                                           // cout <<"blocks "<<  B_i+      B_j<<endl;
                                     if ((B_i+B_j)!=0)
                                     {
+                                   
                                         C[q]+=1.0/(B_i+B_j);
                                         C[q+SA[j]-SA[i]]+=1.0/(B_i+B_j);
+                                        
+                                
                                     }
                                 }
                             }
@@ -846,7 +854,7 @@ unsigned int compute_At_Most_One_map_simple ( unsigned char * seq,unsigned char 
         else
             i++;
     }//end loop
-    
+
     FILE * out_fd;
     if ( ! ( out_fd = fopen ( sw . output_filename, "a") ) )
     {
@@ -935,7 +943,7 @@ unsigned int compute_naive_map ( unsigned char * seq, unsigned char * seq_id, st
 
 unsigned int compute_naive_at_most_k_map ( unsigned char * seq, unsigned char * seq_id, struct TSwitch sw, double * C, INT m , unsigned int k )
 {
-    
+  
     unsigned char * substring_1=NULL;
     unsigned char * substring_2=NULL;
 
@@ -946,16 +954,17 @@ unsigned int compute_naive_at_most_k_map ( unsigned char * seq, unsigned char * 
     for (INT i=0;i<n;i++){
         
         memmove(substring_1,seq+i,m); //subsrting with size m
-     
-        
+        cout << "substring"<<endl;
+           cout << substring_1 <<endl;
         for (INT j=0;j<n;j++){
             
             if (i !=j){
+    
              
             memmove(substring_2,seq+j,m);// substring with size m
             if (strlen ( ( char * ) substring_2 )== m && strlen ( ( char * ) substring_1 )==m){
                 if (Hamming_Dist(substring_1,substring_2, m) <= k){
-                 
+                    cout << substring_2 <<endl;
                     C[i]++;
                 }//end if
                 
@@ -1004,137 +1013,7 @@ unsigned int Hamming_Dist ( unsigned char * sub_1, unsigned char * sub_2, INT m 
     return dist;
 }
 
-unsigned int Counting_Blocks ( INT p, INT L,INT mismatch, INT m) {
- INT  B=0,c=0,x=0,y=0,d=0;
 
-    
-    if (p%L !=0){  //if it is not staring poistion of block  move to the second  block
-        x=p%L;
-        c=p+L-x;
-    }
-    else
-        c=p;
-    
-
-    if ((p+m)%L==0)
-        d=p+m;
-    
-    else{
-        y=(p+m)%L;
-    d=p+m-y;
-    }
-    
-    
-    if(d>c){
-    B=(d-c)/L;
-    
-        if(c<=mismatch && mismatch<d)
-            B=B-1;
-        
-        
-    }
-    
-    else
-    {
-      B=(c-d)/L;
-      if(d<=mismatch && mismatch<c)
-            B=B-1;
-    }
-
-    return B;
-
-    
-}
-
-
-unsigned int Counting_Blocks_for_Two_Mismatch ( INT p, INT L,INT first_mismatch,INT second_mismatch, INT m) {
-    INT  B=0,c=0,x=0,y=0,d=0;
-    INT start_block_of_mismatch=0,end_block_of_mismatch=0;
-
-    int k=0;
-    start_block_of_mismatch= first_mismatch-( first_mismatch%L);
-    
-    end_block_of_mismatch= (start_block_of_mismatch+L )-1;
- 
- 
-    
-    if (p<= first_mismatch &&  first_mismatch<= (p+m-1))
-        k++;
-    if (p<= second_mismatch &&  second_mismatch<= (p+m-1))
-        k++;
-    
-  
-    if (p%L !=0){  //if it is not staring poistion of block  move to the second  block
-        x=p%L;
-        c=p+L-x;
-    }
-    else
-        c=p;
-    
-    
-    if ((p+m)%L==0)  //if is the end poistion is end of th block otherwise back to the end pos of the block
-        d=p+m;
-    
-    else{
-        y=(p+m)%L;
-        d=p+m-y;
-    }
-        /* to find the block that the first mistach belog to it*/
-     
-
-    
-    if(d>c){
-      
-        B=(d-c)/L;
-    
-           /* for the first mismatch */
-        if(c<=first_mismatch && first_mismatch<d){
-       
-        
-            
-            
-            B=B-1;
-            
-            
-        }
-       
-
-        
-        if(c<=second_mismatch && second_mismatch<d ){
-          
-            if (  second_mismatch > end_block_of_mismatch)
-   
-        B=B-1;
-          
- 
-        }
-        
-    } // end if d > c
-    
-    
-    
-    
-    
-    else {
-
-     
-        B=(c-d)/L;
-
-        if(d<=first_mismatch && first_mismatch<c)
-            B=B-1;
-        
-        if(d<=second_mismatch && second_mismatch < c  )
-            if (  second_mismatch > end_block_of_mismatch)
-                
-                B=B-1;
-        
-    }
-
-    
-    return B;
-    
-    
-}
 
 
 
@@ -1217,6 +1096,7 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
     
     INT n = strlen ( ( char * ) seq );
     INT N = m + n;
+
     INT L= floor (m/4);
     INT B=0,w=0,B_i=0,B_j=0;
     
@@ -1279,15 +1159,6 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
         fprintf(stderr, " Error: LCP computation failed.\n" );
         exit( EXIT_FAILURE );
     }
-    
-    
-
-    
-    
-    
-    
-    
-    
     INT index=0,j=0,i=0, alpha=0 , beta=0;
     while ( i < n )
     {                                            // loop to on LCP table //all maximal sets of indices such that the (lcp) between any two of them is at least L (block)
@@ -1317,8 +1188,8 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
                      
                         if (i!=j)
                         {
-                            
-                      
+                        
+                           // cout << "i: "<<i<<"j: "<<j<<endl;
                             // to avoid comparing the same pair
                             //**finding poistions r_1 and r_2**/
                             l = min ( i ,  j );
@@ -1403,9 +1274,6 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
                                 
                                 
                                 INT lce = 0;
-                                
-                                
-                                
                                 lSA= l_1-1; // to start from pos l_1-1 before i immeditly
                                 rSA =SA[j]- abs(SA[i]-l_1)-1; // to start from the pos j-l_1-1
                                 
@@ -1446,59 +1314,75 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
                                 l_3=l_2-1;
                             
         
+                          //  cout << r_1<< " "<< r_2<<" "<< r_3<<endl;
+                           // cout << l_1<< " "<< l_2<<" "<< l_3<<endl;
                                /*****************processing each k's pos******************************************/
                               /**************Only pos with k=2******************************************************/
-                            
-                            INT k=0;
-                            k=max(k,l_3+1);
+                   
+                            //cout << "(i: "<< i<< " j: "<<j<<")"<<endl;
+                            //cout << "r_1 "<<r_1<<" r_2 "<<r_2<<" r_3 "<<r_3<<endl;
+                            //cout <<"l_1 "<< l_1<<" l_2 "<<l_2<<" l_3 "<<l_3<<endl;
+                            INT k=0, u=0;
+                          
+                      
+                                  k=max(k,l_3+1);
+//l_3+=abs((SA[i]+L-1- m)-l_3); // to remove unwanted poistions in l_3
                          
+                 //    cout <<"region 3"<<endl;
+                     
                             for (;k<=l_2;k++)
                             {
-                                
-                                
-                             
+                 
+                         
+                              
+      
                                 if ((k+m-1)>=(SA[i]+L-1) && (k+m-1)< r_1 && (k+m-1)<n && (k+SA[j]-SA[i]+m-1)<n && (k+SA[j]-SA[i])>=0 )
                                 { // poistions between l_3 and l_2 and p+m-1 < r_1
-                                   
+                                   // cout << "pos  region 3 "<<k<<endl;
+                                    //if ( k==7 ||(k+SA[j]-SA[i])==7 ){cout <<"loool"<<endl;}
                                     B_i=Counting_Blocks_for_Two_Mismatch( k, L, l_2,l_1,  m);
-                                    
-                                    
-                                   
-                                    
                                     B_j=Counting_Blocks_for_Two_Mismatch( k+SA[j]-SA[i], L,l_2+SA[j]-SA[i] ,l_1+SA[j]-SA[i],  m);
-                                    
-                                    
+                     
                                     if ((B_i+B_j)!=0 )
                                     {
+                                        
+                                    
+                 
+                    
+                                       
                                         C[k]+=1.0/(B_i+B_j);
                                         C[k+SA[j]-SA[i]]+=1.0/(B_i+B_j);
+                               
                                     }
                                 }
+                           
                             }
+                            
                             
                            /*****************processing each p's pos******************************************/
                           /**************Only pos with k=1 or k=2******************************************************/
                             B_j=0;
                             B_i=0;
                             INT p=0;
+                          
                             p=max(p,l_2+1);
-                            
-                   
+                       //  cout <<"region 2"<<endl;
+
+                          l_2+=abs((SA[i]+L-1- m)-l_2); // to remove umwanted poistions in l_2
                            
                             for (;p<=l_1;p++)
                             {
-                               
+                                //cout << "Region 2"<<endl;
+                                //cout <<"l_pos[o-1] "<< l_2<<endl;
+                                //cout << "(SA[i]+L-1)"<< (SA[i]+L-1)<<endl;
+                                //cout <<"r_pos[k+1-o+1] "<< r_2<<endl;
                                 if ((p+m-1)>=(SA[i]+L-1) && (p+m-1)< r_2 && (p+m-1)<n && (p+SA[j]-SA[i]+m-1)<n && (p+SA[j]-SA[i])>=0 )
-                               // if ((p+m-1)>= r_1 &&(p+m-1)>=(SA[i]+L-1) && (p+m-1)< r_2 && (p+m-1)<n && (p+SA[j]-SA[i]+m-1)<n && (p+SA[j]-SA[i])>=0 )
+                                
                                 { // poistions between l_2 and l_1 and p+m-1 < r_1
-                                
-                                    
-                                    
-                               
+                                      //  cout << "pos region 2 "<<p<<endl;
+                                    //if ( p==7 ||(p+SA[j]-SA[i])==7 ){
+                                      //  cout <<"loool"<<endl;}
                                     B_i=Counting_Blocks_for_Two_Mismatch( p, L, l_1,r_1,  m);   // count the number of blocks
-                                    
-                                    
-                                
                                     B_j=Counting_Blocks_for_Two_Mismatch( (p+SA[j]-SA[i]), L, (l_1+SA[j]-SA[i]),(r_1+SA[j]-SA[i]),  m);   // count the number of blocks
                                     
                           
@@ -1506,6 +1390,7 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
                                     {
                                         C[p]+=1.0/(B_i+B_j);
                                         C[p+SA[j]-SA[i]]+=1.0/(B_i+B_j);
+              
                                     }
                                 }
                             }
@@ -1514,36 +1399,38 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
                             B_j=0;
                             B_i=0;
                             INT q=0;
+             
                             q=max(q,l_1+1);
-                         
+                  
+                           l_1+=abs((SA[i]+L-1- m)-l_1); // to remove unwanted poistions in l_1
                             
                             
                                 /*****************processing each q's pos******************************************/
                                      /**************Only pos with K=0,k=1 and k=2******************************************************/
                             
                             
-                            
+                           //    cout <<"region 1"<<endl;
                             for (;q<=SA[i];q++)
                             {
-                                
-                                
-                               
+                               // cout << SA[i]<<endl;
+                                //cout << q<<endl;
+                                //cout <<r_3<<endl;
+                                //cout << (SA[i]+L-1)<<endl;
                              if ((q+m-1)>=(SA[i]+L-1) && (q+m-1) <r_3 && (q+m-1)<n && (q+SA[j]-SA[i]+m-1)<n && (q+SA[j]-SA[i])>=0 )
-                                //if ((q+m-1)>=(SA[i]+L-1) && (q+m-1) <r_3 &&(q+m-1) >=r_2 && (q+m-1)<n && (q+SA[j]-SA[i]+m-1)<n && (q+SA[j]-SA[i])>=0 )
+                  
                                 {
-                                    
+                                                   //   cout << "pos region 1 "<<q <<endl;
+                                   // if ( q==7 ||(q+SA[j]-SA[i])==7){ cout <<"loool"<<endl;}
                                     B_i=Counting_Blocks_for_Two_Mismatch( q, L, r_1,r_2 , m);
                                    
                                     B_j=Counting_Blocks_for_Two_Mismatch( q+SA[j]-SA[i], L, r_1+SA[j]-SA[i],  r_2+SA[j]-SA[i],m);
-                                    
-                                    
-                               
-                
-                                    
                                    if ((B_i+B_j)!=0)
                                     {
+                                        
                                         C[q]+=1.0/(B_i+B_j);
                                         C[q+SA[j]-SA[i]]+=1.0/(B_i+B_j);
+                        
+                                        
                                     }
                                 }
                             }
@@ -1601,13 +1488,12 @@ unsigned int compute_At_Most_Two_map_simple ( unsigned char * seq,unsigned char 
     return ( 1 );
 }
 
-
 unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * seq_id, struct TSwitch sw, INT m ,   double  * C ,int k)
 {
     INT L= floor ((m/(k+2.0))*1.0);
     int number_of_mismatch=0;
     INT n = strlen ( ( char * ) seq );
-
+    //INT N = m + n;
     INT * SA;
     INT * LCP;
     INT * invSA;
@@ -1668,7 +1554,7 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
     }
     
     INT index=0,j=0,i=0, alpha=0 , beta=0;
-
+    //   omp_set_num_threads(sw . T);
 
     double t=0.0;
     while ( i < n )
@@ -1687,7 +1573,10 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
             beta=(j-1);
             //************************Processing each set between Alpha-1 and Beta ***********************//
 
-           
+              // cout << alpha<< " "<<beta<<endl;
+            //***************parallel goes here********************///
+            
+            //   #pragma omp parallel for shared( dic )
             for(INT i=alpha-1;i<=beta;i++)
             {
                 
@@ -1922,7 +1811,9 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
                 free(mismatches_j_pos);
                 free(r_pos);
                 free(l_pos);
-            
+                //if ((table.size()> 0))
+                
+                //   dic->at(tid)= table;
                 
             }// loop for i
             i=j;
@@ -1978,10 +1869,202 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
     return ( 1 );
 }
 
+    
 
 
 
 
+unsigned int Counting_Blocks_for_K_Mismatch ( INT p, INT L,INT * mismatches, INT m, INT k) {
+
+     INT  B=0,c=0,x=0,y=0,d=0;
+     INT start_block_of_mismatch=0,end_block_of_mismatch=0;
+    
+
+     if (p%L !=0){  //if it is not staring poistion of block  move to the second  block
+     x=p%L;
+     c=p+L-x;
+     }
+     else
+     c=p;
+    
+    
+     if ((p+m)%L==0)  //if is the end poistion is end of th block otherwise back to the end pos of the block
+     d=p+m;
+    
+     else{
+     y=(p+m)%L;
+     d=p+m-y;
+     }
+
+ if(d>c){
+     B=(d-c)/L;
+     for (INT i=0;i<k;i++){
+         if (i==0){
+             if(c<=mismatches[i]&& mismatches[i]<d){
+         B=B-1;
+                }
+         }
+         else{
+        start_block_of_mismatch= mismatches[i-1]-( mismatches[i-1]%L);
+        end_block_of_mismatch= (start_block_of_mismatch+L )-1;
+           if(c<=mismatches[i] && mismatches[i]<d ){
+               
+               if ( mismatches[i] > end_block_of_mismatch)
+            B=B-1;
+    }
+     }
+     }
+     } // end if d > c
+     else {
+     B=(c-d)/L;
+        // cout << B <<endl;
+          for (INT i=0;i<k;i++){
+          
+              if (i==0){
+                  if(d<=mismatches[i] && mismatches[i]<c){
+                    B=B-1; ;
+                  }
+              }
+                  else{
+                
+                      start_block_of_mismatch= mismatches[i-1]-( mismatches[i-1]%L);
+                      
+                      end_block_of_mismatch= (start_block_of_mismatch+L)-1;
+     
+     if(d<=mismatches[i] && mismatches[i] < c  )
+     if (  mismatches[i] > end_block_of_mismatch)
+     
+     B=B-1;
+              }
+              }
+     }
+    return B;
+    
+    
+}
+
+
+unsigned int Counting_Blocks_for_Two_Mismatch ( INT p, INT L,INT first_mismatch,INT second_mismatch, INT m) {
+   // cout <<"after call"<<endl;
+    //cout << first_mismatch << " "<<second_mismatch <<endl;
+    
+    
+    
+    INT  B=0,c=0,x=0,y=0,d=0;
+    INT start_block_of_mismatch=0,end_block_of_mismatch=0;
+
+    start_block_of_mismatch= first_mismatch-( first_mismatch%L);
+    end_block_of_mismatch= (start_block_of_mismatch+L )-1;
+    if (p%L !=0){  //if it is not staring poistion of block  move to the second  block
+        x=p%L;
+        c=p+L-x;
+    }
+    else
+        c=p;
+    
+    
+    if ((p+m)%L==0)  //if is the end poistion is end of th block otherwise back to the end pos of the block
+        d=p+m;
+    
+    else{
+        y=(p+m)%L;
+        d=p+m-y;
+    }
+    /* to find the block that the first mistach belog to it*/
+    
+    
+    
+    if(d>c){
+        
+        B=(d-c)/L;
+        
+        /* for the first mismatch */
+        if(c<=first_mismatch && first_mismatch<d){
+            B=B-1;
+            
+            
+        }
+        
+        
+        
+        if(c<=second_mismatch && second_mismatch<d ){
+            
+            if (  second_mismatch > end_block_of_mismatch)
+                
+                B=B-1;
+            
+            
+        }
+        
+    } // end if d > c
+    
+    
+    
+    
+    
+    else {
+        
+        
+        B=(c-d)/L;
+        
+        if(d<=first_mismatch && first_mismatch<c)
+            B=B-1;
+        
+        if(d<=second_mismatch && second_mismatch < c  )
+            if (  second_mismatch > end_block_of_mismatch)
+                
+                B=B-1;
+        
+    }
+  //  cout<<"Blocks " << B<<endl;
+    return B;
+    
+    
+}
+
+unsigned int Counting_Blocks ( INT p, INT L,INT mismatch, INT m) {
+    INT  B=0,c=0,x=0,y=0,d=0;
+
+    if (p%L !=0){  //if it is not staring poistion of block  move to the second  block
+        x=p%L;
+        c=p+L-x;
+    }
+    else
+        c=p;
+    
+    
+    if ((p+m)%L==0)
+        d=p+m;
+    
+    else{
+        y=(p+m)%L;
+        d=p+m-y;
+    }
+    
+    
+    if(d>c){
+        B=(d-c)/L;
+        
+        if(c<=mismatch && mismatch<d){
+            B=B-1;
+        }
+        
+        
+    }
+    
+    else
+    {
+        B=(c-d)/L;         B=(d-c)/L;
+
+        if(d<=mismatch && mismatch<c){
+            B=B-1;
+        }
+    }
+   // cout << "one block "<< B<<endl;
+    return B;
+    
+    
+}
 
 
 
