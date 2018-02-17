@@ -1607,7 +1607,7 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
     INT L= floor ((m/(k+2.0))*1.0);
     int number_of_mismatch=0;
     INT n = strlen ( ( char * ) seq );
-    //INT N = m + n;
+
     INT * SA;
     INT * LCP;
     INT * invSA;
@@ -1668,7 +1668,7 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
     }
     
     INT index=0,j=0,i=0, alpha=0 , beta=0;
-    //   omp_set_num_threads(sw . T);
+
 
     double t=0.0;
     while ( i < n )
@@ -1687,10 +1687,7 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
             beta=(j-1);
             //************************Processing each set between Alpha-1 and Beta ***********************//
 
-              // cout << alpha<< " "<<beta<<endl;
-            //***************parallel goes here********************///
-            
-            //   #pragma omp parallel for shared( dic )
+           
             for(INT i=alpha-1;i<=beta;i++)
             {
                 
@@ -1925,9 +1922,7 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
                 free(mismatches_j_pos);
                 free(r_pos);
                 free(l_pos);
-                //if ((table.size()> 0))
-                
-                //   dic->at(tid)= table;
+            
                 
             }// loop for i
             i=j;
