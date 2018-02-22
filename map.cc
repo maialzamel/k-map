@@ -1,6 +1,6 @@
 /**
     K-MAP: In the k-mappability problem, we are given a string x of length n and integers m and k, and we are asked to count, for each length-m factor y of x, the number of other factors of length m of x that are at Hamming distance at most k from y.
-    Copyright (C) 2017 Mai Alzamel and Solon P. Pissis. 
+    Copyright (C) 2017 Mai Alzamel . 
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -165,12 +165,10 @@ int main(int argc, char **argv)
 if(K>=1){
                 if (M >= (K+2))
                     /**********   The below functions calls are for compraing the results with the naive algorthims for k=1 or k=2****/
-                    // compute_naive_map ( seq, seq_id, sw, C,M,K );
-                    //compute_At_Most_One_map_simple (seq, seq_id, sw, M, C );
-      //compute_naive_at_most_k_map(seq, seq_id, sw, C,M,K);
-                    //compute_At_Most_Two_map_simple (seq, seq_id, sw, M, C );
- compute_At_Most_K_map_simple ( seq,seq_id,  sw, M ,    C , K);
-
+                  
+                   compute_naive_at_most_k_map(seq, seq_id, sw, C,M,K);
+ //compute_At_Most_K_map_simple ( seq,seq_id,  sw, M ,    C , K);
+//compute_At_Most_K_map_simple_mutlthreads ( seq,seq_id,  sw, M ,    C , K);
 
                 else{
                     
