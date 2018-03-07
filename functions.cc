@@ -522,13 +522,17 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
     
     return ( 1 );
 }
-unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsigned char * seq_id, struct TSwitch sw, INT m ,   double  * C ,int k)
+unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsigned char * seq_id, struct TSwitch sw, INT m ,   double  * C ,unsigned int k)
 {
+
+
+
+      vector<pair<int, int>> chunk;
 
     INT L= floor ((m/(k+2.0))*1.0);
     int number_of_mismatch=0;
     INT n = strlen ( ( char * ) seq );
-    //INT N = m + n;
+
     INT * SA;
     INT * LCP;
     INT * invSA;
@@ -587,63 +591,88 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
         fprintf(stderr, " Error: LCP computation failed.\n" );
         exit( EXIT_FAILURE );
     }
-    
+
+/**********************************************************************************************************************************************/
     INT index=0,j=0,i=0, alpha=0 , beta=0;
-    //   omp_set_num_threads(sw . T);
-    
-    double t=0.0;
     while ( i < n )
     {                                            // loop to on LCP table //all maximal sets of indices such that the (lcp) between any two of them is at least L (block)
         if (LCP[i]>=L)
         {
-            
-            
             alpha=i;                               //store the start index in of the set in alpha
             j=i+1;                                // move j to next pos after start pos has been found
             while ( j < n && LCP[j]>= L)
             {                                       //move j counter until find LCP < L
-                // next index after i is >=
+                                                    // next index after i is >=
                 j++;
             }
             beta=(j-1);
-            //************************Processing each set between Alpha-1 and Beta ***********************//
-            
-            for(INT i=alpha-1;i<=beta;i++)
+     if (alpha!=beta)
+              chunk.push_back(make_pair(alpha,beta));
+     
+             
+
+                
+             i=j;
+        }
+            else
+                i++;
+    }
+
+
+
+
+/****************************************************************************************************************************************/
+    
+
+
+            //************************Processing each set between Alpha-1 and Beta one interval ***********************//
+  omp_set_num_threads(4);
+  
+
+int interval;
+
+//#pragma omp parallel for schedule(static, chunk.size()/4)
+
+
+
+
+for ( interval =0; interval<chunk.size();interval++){
+
+INT alpha= chunk.at(interval ).first;
+ INT beta=chunk.at(interval ).second;
+cout << alpha <<" " <<beta<<endl;
+#pragma omp parallel for schedule( auto)
+
+           for(INT i=alpha-1;i<=beta;i++)
             {
-                
-                int tid =0;
-                
-                
-                
-                INT * r_pos;
+
+               INT * r_pos;
                 INT * l_pos;
                 INT * mismatches; INT * mismatches_j_pos ;
-                
-                
-                
                 INT B_i=0,B_j=0;
-                
                 INT l,r ,r_1,r_2,r_3,l_1,l_2,l_3,u_1,u_2,L_1,L_2;
-                
-                
                 l_pos = ( INT * ) malloc( ( k+2 ) * sizeof( INT ) );
                 r_pos = ( INT * ) malloc( ( k+2 ) * sizeof( INT ) );
                 mismatches_j_pos  = ( INT * ) malloc( ( k ) * sizeof( INT ) );
                 mismatches = ( INT * ) malloc( ( k ) * sizeof( INT ) );
                 
                 if (  SA[i] % L==0)
-                {                                                                //check if it is a starting position of a block.
+                {                                                               //check if it is a starting position of a block.
                     
                     for (INT j=alpha-1; j<= beta;j++)
                     {
+
+
+
+                       
                         
-                        
-                        if (i!=j) // to avoid comparing the same pair
+                   if (i!=j) // to avoid comparing the same pair
                         {
-                            
+                              
                             for(INT o=1;o<=k+1;o++){  //extending to right with number of mismatches+1
-                                
-                                if (o==1){ //if k <= 1
+         
+                               if (o==1){ //if k <= 1
+ 
                                     l = min ( i ,  j );
                                     r = max ( i ,  j );        //LCP(l+1,r)
                                     INT lce = 0; INT lSA = SA[l]; INT rSA = SA[r];
@@ -651,7 +680,7 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
                                         lce++;
                                     r_1 = lce + SA[i];   //LCE to the right
                                     //Finding r_2
-                                    if(r_1<n-1 && (SA[j]+r_1-SA[i])<n-1)
+                                   if(r_1<n-1 && (SA[j]+r_1-SA[i])<n-1)
                                     {                                                       //to check not reaching the end of the string
                                         l = min ( invSA[r_1+1], invSA[SA[j]+r_1-SA[i]+1]);
                                         r = max ( invSA[r_1+1], invSA[SA[j]+r_1-SA[i]+1]);
@@ -670,12 +699,12 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
                                     r_pos[o+1]=r_2;
                                     
                                     o++;
+
                                 } //end if for the r first mismatch
-                                
-                                else
+                      else
                                 {
                                     
-                                    
+                                
                                     r_2= r_pos[o-1]; // to genrlaize it to k
                                     if(r_2<n-1 && (SA[j]+r_2-SA[i])<n-1)
                                     {                                                               //to check not reaching the end of the string
@@ -699,7 +728,7 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
                             
                             INT lce = 0; INT lSA = SA[l]; INT rSA = SA[r];
                             
-                            for(INT  o=1;o<=k+1;o++) //extending to left with number of mismatches+1
+                          for(INT  o=1;o<=k+1;o++) //extending to left with number of mismatches+1
                             {
                                 if (o==1){ //if k <= 1
                                     l = min ( i ,  j );
@@ -758,7 +787,12 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
                                     
                                 }// end else if k >1
                             }//end loop extending to left
-                            
+
+
+
+         
+                             
+
                             ///////////////////////////////////////Prossing k+1 regions with k mismatches ////////////////////////////////////////////////////////////////////////////
                             B_j=0;
                             B_i=0;
@@ -781,7 +815,9 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
                                             B_i=Counting_Blocks_for_K_Mismatch( q, L,  mismatches,  m,k );
                                             B_j=Counting_Blocks_for_K_Mismatch( (q+SA[j]-SA[i]), L, mismatches_j_pos,  m, k);
                                             if ((B_i+B_j)!=0){
+#pragma omp atomic
                                                 C[q]+=1.0/(B_i+B_j);
+#pragma omp atomic
                                                 C[ q+SA[j]-SA[i]]+=1.0/(B_i+B_j);
                                             }
                                         }
@@ -815,7 +851,9 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
                                             B_j=Counting_Blocks_for_K_Mismatch( (p+SA[j]-SA[i]), L, mismatches_j_pos,  m, k);
                                             if ((B_i+B_j)!=0 )
                                             {
+#pragma omp atomic
                                                 C[p]+=1.0/(B_i+B_j);
+ #pragma omp atomic
                                                 C[ p+SA[j]-SA[i]]+=1.0/(B_i+B_j);
                                                 
                                                 
@@ -842,43 +880,25 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
                 free(mismatches_j_pos);
                 free(r_pos);
                 free(l_pos);
-                //if ((table.size()> 0))
-                
-                //   dic->at(tid)= table;
-                
-            }// loop for i
-            i=j;
-            
-            
-            
-            
-            
-            
-            
-        }//end if
-        
-        else
-            i++;
+           
+
         
         
-    }//end loop
+   } 
     
     
-    
-    
-    //
-    
-    
-    
-    FILE * out_fd;
+}
+ 
+
+  FILE * out_fd;
     if ( ! ( out_fd = fopen ( sw . output_filename, "a") ) )
     {
         fprintf ( stderr, " Error: Cannot open file %s!\n", sw . output_filename );
         return ( 1 );
     }
     fprintf ( out_fd, ">%s\n", ( char * ) seq_id );
-    for ( INT i = 0; i < n; i++ )
-        fprintf ( out_fd, "%4.00f ", C[i] );
+ for ( INT i = 0; i < n; i++ )
+       fprintf ( out_fd, "%4.00f ", C[i] );
     fprintf( out_fd, "\n" );
     
     if ( fclose ( out_fd ) )
@@ -892,14 +912,10 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
     free ( LCP );
     free ( invSA );
     
-    //free(mismatches);
-    //free(mismatches_j_pos);
-    //free(r_pos);
-    //free(l_pos);
+ 
   
     return ( 1 );
 }
-
 
 
 unsigned int Counting_Blocks_for_K_Mismatch ( INT p, INT L,INT * mismatches, INT m, INT k) {
