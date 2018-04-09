@@ -23,10 +23,10 @@
 #include <vector>
 #include "mapdefs.h"
 
-
+#include <omp.h>
 #include <divsufsort64.h>                                         // include header for suffix sort
 
-#include <sdsl/rmq_support.hpp>
+
 #include <sdsl/bit_vectors.hpp>                                      // include header for bit vectors
 
 using namespace sdsl;
@@ -146,7 +146,7 @@ unsigned int Hamming_Dist ( unsigned char * sub_1, unsigned char * sub_2, INT m 
 
 
 
-unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * seq_id, struct TSwitch sw, INT m ,   double  * C ,int k)
+unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * seq_id, struct TSwitch sw, INT m ,   double  * C ,unsigned int k)
 {
     INT L= floor ((m/(k+2.0))*1.0);
     int number_of_mismatch=0;
@@ -465,9 +465,7 @@ unsigned int compute_At_Most_K_map_simple ( unsigned char * seq,unsigned char * 
                 free(mismatches_j_pos);
                 free(r_pos);
                 free(l_pos);
-                //if ((table.size()> 0))
-                
-                //   dic->at(tid)= table;
+            
                 
             }// loop for i
             i=j;
@@ -619,34 +617,7 @@ unsigned int compute_At_Most_K_map_simple_mutlthreads ( unsigned char * seq,unsi
     }
 
 
-
-
-/****************************************************************************************************************************************/
-    
-
-
-            //************************Processing each set between Alpha-1 and Beta one interval ***********************//
-  omp_set_num_threads(4);
-  
-
-int interval;
-
-//#pragma omp parallel for schedule(static, chunk.size()/4)
-
-
-
-
-for ( interval =0; interval<chunk.size();interval++){
-
-INT alpha= chunk.at(interval ).first;
- INT beta=chunk.at(interval ).second;
-cout << alpha <<" " <<beta<<endl;
-#pragma omp parallel for schedule( auto)
-
-           for(INT i=alpha-1;i<=beta;i++)
-            {
-
-               INT * r_pos;
+    INT * r_pos;
                 INT * l_pos;
                 INT * mismatches; INT * mismatches_j_pos ;
                 INT B_i=0,B_j=0;
@@ -655,20 +626,48 @@ cout << alpha <<" " <<beta<<endl;
                 r_pos = ( INT * ) malloc( ( k+2 ) * sizeof( INT ) );
                 mismatches_j_pos  = ( INT * ) malloc( ( k ) * sizeof( INT ) );
                 mismatches = ( INT * ) malloc( ( k ) * sizeof( INT ) );
-                
-                if (  SA[i] % L==0)
-                {                                                               //check if it is a starting position of a block.
-                    
+
+
+/****************************************************************************************************************************************/
+    
+
+
+            //************************Processing each set between Alpha-1 and Beta one interval ***********************//
+ omp_set_num_threads(4);
+  int interval;
+#pragma omp parallel for schedule( auto)
+
+for ( interval =0; interval<chunk.size();interval++){
+
+ INT alpha= chunk.at(interval ).first;
+ INT beta=chunk.at(interval ).second;
+
+
+//#pragma omp parallel for schedule (auto) collapse(2) private (r_pos,l_pos,mismatches,mismatches_j_pos , l,r ,r_1,r_2,r_3,l_1,l_2,l_3,u_1,u_2,L_1,L_2)
+           for(INT i=alpha-1;i<=beta;i++)
+            {
+
                     for (INT j=alpha-1; j<= beta;j++)
                     {
 
 
+                INT * r_pos;
+                INT * l_pos;
+                INT * mismatches; INT * mismatches_j_pos ;
+                INT B_i=0,B_j=0;
+                INT l,r ,r_1,r_2,r_3,l_1,l_2,l_3,u_1,u_2,L_1,L_2;
+                l_pos = ( INT * ) malloc( ( k+2 ) * sizeof( INT ) );
+                r_pos = ( INT * ) malloc( ( k+2 ) * sizeof( INT ) );
+                mismatches_j_pos  = ( INT * ) malloc( ( k ) * sizeof( INT ) );
+                mismatches = ( INT * ) malloc( ( k ) * sizeof( INT ) );
 
-                       
-                        
-                   if (i!=j) // to avoid comparing the same pair
-                        {
-                              
+                            if (  SA[i] % L==0){
+                                                                               //check if it is a starting position of a block.
+                 
+                
+                              if (i!=j){// to avoid comparing the same pair
+                               
+                                    
                             for(INT o=1;o<=k+1;o++){  //extending to right with number of mismatches+1
          
                                if (o==1){ //if k <= 1
@@ -866,20 +865,21 @@ cout << alpha <<" " <<beta<<endl;
                                 } //end else
                                 
                             }//end o regions loop
-                            
+                        } //end if (  SA[i] % L==0)     
                             
                         } //if (i!=j)
+                 free(mismatches);
+                free(mismatches_j_pos);
+                free(r_pos);
+                free(l_pos);
                         
                     }// j positions
                     
                     
                     
-                } //end if (  SA[i] % L==0)
+               
                 
-                free(mismatches);
-                free(mismatches_j_pos);
-                free(r_pos);
-                free(l_pos);
+             
            
 
         
@@ -888,8 +888,7 @@ cout << alpha <<" " <<beta<<endl;
     
     
 }
- 
-
+cout << "start writing on the output file "<<endl;
   FILE * out_fd;
     if ( ! ( out_fd = fopen ( sw . output_filename, "a") ) )
     {
@@ -897,8 +896,8 @@ cout << alpha <<" " <<beta<<endl;
         return ( 1 );
     }
     fprintf ( out_fd, ">%s\n", ( char * ) seq_id );
- for ( INT i = 0; i < n; i++ )
-       fprintf ( out_fd, "%4.00f ", C[i] );
+    for ( INT i = 0; i < n; i++ )
+        fprintf ( out_fd, "%4.00f ", C[i] );
     fprintf( out_fd, "\n" );
     
     if ( fclose ( out_fd ) )
@@ -908,14 +907,11 @@ cout << alpha <<" " <<beta<<endl;
     }
     
     
-    free ( SA );
-    free ( LCP );
-    free ( invSA );
-    
  
   
     return ( 1 );
 }
+
 
 
 unsigned int Counting_Blocks_for_K_Mismatch ( INT p, INT L,INT * mismatches, INT m, INT k) {
@@ -986,4 +982,3 @@ unsigned int Counting_Blocks_for_K_Mismatch ( INT p, INT L,INT * mismatches, INT
     
     
 }
-
